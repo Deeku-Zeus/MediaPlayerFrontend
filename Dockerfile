@@ -1,19 +1,18 @@
-# Use Node.js as base image
-FROM node:20
+FROM ubuntu:22.04
 
-# Set working directory
+RUN apt-get update && apt-get install -y curl gnupg && \
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs
+
 WORKDIR /usr/src/app
 
-# Copy package.json and install dependencies
 COPY package*.json ./
-RUN npm install
 
-# Copy the application files
+RUN npm i @rollup/rollup-linux-arm64-gnu
+RUN npm i --legacy-peer-deps
+
 COPY . .
 
-# Build the app
-RUN npm run build
-
-# Expose port 3000 and start the app
 EXPOSE 3000
-CMD ["npm", "run", "preview"]
+
+CMD ["npm", "run", "dev"]
