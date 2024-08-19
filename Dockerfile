@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM node:20
 
 RUN apt-get update && apt-get install -y curl gnupg && \
     curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
@@ -8,8 +8,7 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm i @rollup/rollup-linux-arm64-gnu
-RUN npm i --legacy-peer-deps
+RUN npm install --legacy-peer-deps
 
 COPY . .
 
