@@ -8,6 +8,9 @@ WORKDIR /usr/src/app
 
 COPY package*.json ./
 
+# Copy the scripts directory
+COPY scripts/ ./scripts/
+
 RUN npm install --legacy-peer-deps
 
 COPY . .
