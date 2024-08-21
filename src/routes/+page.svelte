@@ -1,8 +1,8 @@
 <script>
-    import SteamingSite from '../components/SteamingSite.svelte';
-  </script>
-  
-  <main class="p-8">
-    <h1 class="text-3xl font-bold mb-6 text-red-500">My Video Player</h1>
-    <SteamingSite />
-  </main>
+	import SteamingSite from '../components/SteamingSite.svelte';
+</script>
+
+<main class="p-8">
+	<h1 class="text-3xl font-bold mb-6 text-yellow-500">My Video Player</h1>
+	<SteamingSite />
+</main>
