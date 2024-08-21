@@ -20,7 +20,7 @@
 		"@types/eslint": "^9.6.0",
 		"@types/node": "^18.7.23",
 		"autoprefixer": "^10.4.7",
-		"esbuild-wasm": "^0.14.5",
+		"esbuild-wasm": "^0.14.54",
 		"eslint": "^9.0.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.36.0",
