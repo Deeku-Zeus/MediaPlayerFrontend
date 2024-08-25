@@ -7,6 +7,12 @@
 
 	let videoElement: any;
 	let isPaused = true;
+	let isEyeOpen = true; // State for the eye visibility
+
+	// Rectangle coordinates
+	let rectangles = [
+		{ x: 10, y: 10, width: 100, height: 50 } // Default center rectangle
+	];
 
 	// Function to handle the play event
 	function handlePlay() {
@@ -69,6 +75,7 @@
 						// Create a File object from the Blob
 						imageFile = new File([blob], 'screenshot.png', { type: 'image/png' });
 						console.log('File created:', imageFile);
+						drawRectangles();
 					}
 				}, 'image/png');
 			} catch (error) {
@@ -77,6 +84,47 @@
 		} else {
 			console.log('Video is not paused or canvas/context is undefined');
 		}
+	}
+
+	function drawRectangles() {
+		if (canvasElement && context) {
+			const width = canvasElement.width;
+			const height = canvasElement.height;
+
+			// Draw current screenshot
+			const img = new Image();
+			img.src = screenshotUrl;
+			img.onload = () => {
+				context.drawImage(img, 0, 0, width, height);
+
+				// Draw rectangles
+				rectangles.forEach((rect) => {
+					context.beginPath();
+					context.rect(rect.x, rect.y, rect.width, rect.height);
+					context.lineWidth = 1;
+					context.strokeStyle = 'blue';
+					context.stroke();
+				});
+			};
+		} else {
+			console.error('Canvas or context is undefined');
+		}
+	}
+
+	function handleSearch() {
+		console.log('Search icon clicked');
+		// Implement search functionality
+	}
+
+	function handleCrop() {
+		console.log('Crop icon clicked');
+		// Implement crop functionality
+	}
+
+	function toggleEyeVisibility() {
+		isEyeOpen = !isEyeOpen;
+		console.log(`Eye visibility: ${isEyeOpen ? 'Open' : 'Closed'}`);
+		// Implement eye visibility toggle functionality
 	}
 
 	// Set up the canvas context on component mount
