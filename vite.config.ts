@@ -8,6 +8,12 @@ export default defineConfig({
 		postcss
 	},
 	server: {
+		hmr: {
+			protocol: 'ws', // Use 'ws' for WebSocket, or 'wss' for Secure WebSocket
+			host: 'localhost', // Specify the host
+			port: 3000, // Specify the port
+			overlay: true // Show error overlay in the browser
+		},
 		proxy: {
 			// '/samplevideo': {
 			// 	target: 'https://www.w3schools.com/html/mov_bbb.mp4',

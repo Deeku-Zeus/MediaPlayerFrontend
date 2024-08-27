@@ -9,14 +9,21 @@
 	let isFullscreen = false;
 	let currentTime = 0;
 	let duration = 0;
-	let isSearchOpen = false; // To track search panel open/close
+	let isSearchOpen = false;
 	let canvasElement: HTMLCanvasElement | null = null;
 	let videoUrl = '../../static/sampleVideos/fashion.mp4';
 	let poster = '../../static/1280x720.png';
 
-	// onMount(() => {
-
-	// });
+	// Crop variables
+	let isCropping = false;
+	let cropStartX = 0;
+	let cropStartY = 0;
+	let cropEndX = 0;
+	let cropEndY = 0;
+	let cropImage = '';
+	let croppedImageFile: File | null = null;
+	let croppedImageUrl: string | null = null;
+	let isDragging = false;
 
 	function handleKeydown(event: KeyboardEvent) {
 		if (event.code === 'Space') {
@@ -44,17 +51,17 @@
 		}
 	}
 
-	function toggleFullscreen() {
-		if (videoElement) {
-			if (!document.fullscreenElement) {
-				videoElement.requestFullscreen();
-				isFullscreen = true;
-			} else {
-				document.exitFullscreen();
-				isFullscreen = false;
-			}
-		}
-	}
+	// function toggleFullscreen() {
+	// 	if (videoElement) {
+	// 		if (!document.fullscreenElement) {
+	// 			videoElement.requestFullscreen();
+	// 			isFullscreen = true;
+	// 		} else {
+	// 			document.exitFullscreen();
+	// 			isFullscreen = false;
+	// 		}
+	// 	}
+	// }
 
 	function updateProgress() {
 		if (videoElement) {
@@ -65,28 +72,28 @@
 	function seekVideo(event: MouseEvent) {
 		if (videoElement) {
 			const rect = (event.target as HTMLElement).getBoundingClientRect();
-			const offsetX = event.clientX - rect.left;
+			const offsetX = Math.max(0, event.clientX - rect.left);
 			const width = rect.width;
-			const newTime = (offsetX / width) * duration;
+
+			// Calculate newTime based on the click position
+			const newTime = Math.max(0, Math.min(duration, (offsetX / width) * duration));
+
+			// Update video currentTime
 			videoElement.currentTime = newTime;
+
+			// Ensure the update is applied
+			setTimeout(() => {
+				if (videoElement) {
+					videoElement.currentTime = newTime;
+				}
+			}, 0);
 		}
 	}
 
-	function toggleSearchPanel() {
-		isSearchOpen = !isSearchOpen;
-	}
+	// function toggleSearchPanel() {
+	// 	isSearchOpen = !isSearchOpen;
+	// }
 
-	// crop logic
-	let isCropping = false;
-	let cropStartX = 0;
-	let cropStartY = 0;
-	let cropEndX = 0;
-	let cropEndY = 0;
-	let cropImage = '';
-	let croppedImageFile: File | null = null;
-	let croppedImageUrl: string | null = null;
-
-	// Function to handle conversion and display
 	function handleCroppedImage() {
 		const croppedImageBase64 = getCroppedImage(); // Assuming this is the function returning the base64 data URL
 		croppedImageFile = base64ToFile(croppedImageBase64, 'cropped-image.png');
@@ -98,22 +105,25 @@
 	}
 
 	function enterCropMode() {
-		if (videoElement) {
+		if (videoElement && !isCropping) {
 			videoElement.pause();
-			isCropping = true;
+			isCropping = true; // Enable crop mode
 		}
 	}
 
 	function handleCropMouseDown(event: MouseEvent) {
 		if (isCropping) {
+			isDragging = true;
 			const rect = videoElement!.getBoundingClientRect();
 			cropStartX = event.clientX - rect.left;
 			cropStartY = event.clientY - rect.top;
+			cropEndX = cropStartX;
+			cropEndY = cropStartY;
 		}
 	}
 
 	function handleCropMouseMove(event: MouseEvent) {
-		if (isCropping) {
+		if (isCropping && isDragging) {
 			const rect = videoElement!.getBoundingClientRect();
 			cropEndX = event.clientX - rect.left;
 			cropEndY = event.clientY - rect.top;
@@ -121,9 +131,10 @@
 	}
 
 	function handleCropMouseUp() {
-		if (isCropping) {
-			captureCroppedImage();
-			isCropping = false;
+		if (isCropping && isDragging) {
+			isDragging = false;
+			captureCroppedImage(); // Capture the cropped image
+			isCropping = false; // Exit crop mode
 		}
 	}
 
@@ -131,14 +142,31 @@
 		if (canvasElement && videoElement) {
 			const context = canvasElement.getContext('2d');
 			if (context) {
-				const width = Math.abs(cropEndX - cropStartX);
-				const height = Math.abs(cropEndY - cropStartY);
-				const x = Math.min(cropStartX, cropEndX);
-				const y = Math.min(cropStartY, cropEndY);
+				const videoRect = videoElement.getBoundingClientRect();
+				const canvasRect = canvasElement.getBoundingClientRect();
 
-				canvasElement.width = width;
-				canvasElement.height = height;
-				context.drawImage(videoElement, x, y, width, height, 0, 0, width, height);
+				const videoWidth = videoElement.videoWidth;
+				const videoHeight = videoElement.videoHeight;
+
+				const cropX = (cropStartX / videoRect.width) * videoWidth;
+				const cropY = (cropStartY / videoRect.height) * videoHeight;
+				const cropWidth = (Math.abs(cropEndX - cropStartX) / videoRect.width) * videoWidth;
+				const cropHeight = (Math.abs(cropEndY - cropStartY) / videoRect.height) * videoHeight;
+
+				canvasElement.width = cropWidth;
+				canvasElement.height = cropHeight;
+
+				context.drawImage(
+					videoElement,
+					cropX,
+					cropY,
+					cropWidth,
+					cropHeight,
+					0,
+					0,
+					cropWidth,
+					cropHeight
+				);
 
 				cropImage = canvasElement.toDataURL('image/png');
 			}
@@ -148,15 +176,6 @@
 	function getCroppedImage() {
 		return cropImage;
 	}
-
-	onMount(() => {
-		if (videoElement) {
-			duration = videoElement.duration;
-			videoElement.volume = volume;
-			document.addEventListener('keydown', handleKeydown);
-			document.addEventListener('click', handleClickOutside);
-		}
-	});
 
 	function handleClickOutside(event: MouseEvent) {
 		const searchPanel = document.querySelector('.search-panel');
@@ -171,6 +190,15 @@
 			isSearchOpen = false;
 		}
 	}
+
+	onMount(() => {
+		if (videoElement) {
+			duration = videoElement.duration;
+			videoElement.volume = volume;
+			document.addEventListener('keydown', handleKeydown);
+			document.addEventListener('click', handleClickOutside);
+		}
+	});
 </script>
 
 <div class="relative max-w-5xl mx-auto bg-black">
@@ -191,13 +219,26 @@
 
 	<!-- Cropping Overlay -->
 	<!-- svelte-ignore a11y-no-static-element-interactions -->
-	<div
-		class="absolute inset-0 cropping-overlay hidden"
-		on:mousedown={handleCropMouseDown}
-		on:mousemove={handleCropMouseMove}
-		on:mouseup={handleCropMouseUp}
-		class:hidden={!isCropping}
-	></div>
+	{#if isCropping}
+		<div
+			class="absolute inset-0 cropping-overlay"
+			on:mousedown={handleCropMouseDown}
+			on:mousemove={handleCropMouseMove}
+			on:mouseup={handleCropMouseUp}
+		>
+			{#if isCropping && isDragging}
+				<div
+					class="absolute border-2 border-red-500"
+					style="left: {Math.min(cropStartX, cropEndX)}px; top: {Math.min(
+						cropStartY,
+						cropEndY
+					)}px; width: {Math.abs(cropEndX - cropStartX)}px; height: {Math.abs(
+						cropEndY - cropStartY
+					)}px;"
+				></div>
+			{/if}
+		</div>
+	{/if}
 
 	<!-- Custom Controls -->
 	<div
@@ -246,7 +287,6 @@
 		<!-- Crop Button -->
 		<button on:click={enterCropMode} class="text-2xl">
 			<i class="fas fa-crop-alt"></i>
-			<!-- Font Awesome Crop Icon -->
 		</button>
 
 		<!-- Search Button -->
@@ -268,13 +308,19 @@
 		<div
 			class="absolute top-0 right-0 w-64 h-full bg-gray-800 text-white p-4 overflow-y-auto z-10 search-panel"
 		>
-			<h3 class="text-lg font-semibold mb-4">Search Panel</h3>
+			<div class="sticky top-0 bg-gray-900 p-2 flex justify-between items-center">
+				<h3 class="text-lg font-semibold">Search Panel</h3>
+				<button on:click={() => (isSearchOpen = false)} class="text-xl">
+					<i class="fas fa-times"></i>
+					<!-- Font Awesome Close Icon -->
+				</button>
+			</div>
 			<div class="space-y-4">
-				<div class="p-2 bg-gray-700 rounded">Item 1</div>
-				<div class="p-2 bg-gray-700 rounded">Item 2</div>
-				<div class="p-2 bg-gray-700 rounded">Item 3</div>
-				<div class="p-2 bg-gray-700 rounded">Item 4</div>
-				<div class="p-2 bg-gray-700 rounded">Item 5</div>
+				<div class="p-2 bg-gray-700 rounded h-40">Item 1</div>
+				<div class="p-2 bg-gray-700 rounded h-40">Item 2</div>
+				<div class="p-2 bg-gray-700 rounded h-40">Item 3</div>
+				<div class="p-2 bg-gray-700 rounded h-40">Item 4</div>
+				<div class="p-2 bg-gray-700 rounded h-40">Item 5</div>
 			</div>
 		</div>
 	{/if}
@@ -284,12 +330,12 @@
 </div>
 
 <!-- Button to trigger the conversion and display -->
-<button on:click={handleCroppedImage}>Display Cropped Image</button>
+<button on:click={handleCroppedImage}>show Cropped Image</button>
 
 <!-- Display the cropped image -->
 {#if croppedImageUrl}
 	<!-- svelte-ignore a11y-img-redundant-alt -->
-	<img src={croppedImageUrl} alt="Cropped Image" />
+	<img class="h-full w-full" src={croppedImageUrl} alt="Cropped Image" />
 {/if}
 
 <style lang="postcss">
@@ -304,7 +350,7 @@
 	}
 
 	.fullscreen .absolute {
-		bottom: 5%; /* Keep controls visible at the bottom in fullscreen mode */
+		bottom: 5%;
 	}
 
 	.cropping-overlay {
