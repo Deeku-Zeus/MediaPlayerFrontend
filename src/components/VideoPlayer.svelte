@@ -1,6 +1,6 @@
 <script lang="ts">
 	import path from 'path';
-	import {uploadImage} from '../lib/api'
+	import { uploadImage } from '../lib/api';
 	import { onMount } from 'svelte';
 	//let videoUrl = 'https://www.w3schools.com/html/mov_bbb.mp4';
 	let videoUrl = '../../static/sampleVideos/fashion.mp4';
@@ -10,7 +10,7 @@
 	let videoElement: any;
 	let isPaused = true;
 	let isEyeOpen = true; // State for the eye visibility
-	let uploadStatus = ''
+	let uploadStatus = '';
 
 	// Rectangle coordinates
 	let rectangles = [
@@ -131,23 +131,28 @@
 	}
 
 	async function handleUpload() {
-        // if (!selectedFile) {
-        //     uploadStatus = 'Please select a file first.';
-        //     return;
-        // }
+		// if (!selectedFile) {
+		//     uploadStatus = 'Please select a file first.';
+		//     return;
+		// }
 
-		console.log(imageFile)
-        try {
-            uploadStatus = 'Uploading...';
-            const response = await uploadImage(imageFile, { videoName:"Test Video", timestamp:'2024-08-22T10:00:00Z', username:'ecom_user', profile_name:'deeku' });
-            uploadStatus = 'Upload successful!';
-        } catch (error) {
-            console.error(error);
-            uploadStatus = 'Upload failed!';
-        }
-    }
+		console.log(imageFile);
+		try {
+			uploadStatus = 'Uploading...';
+			const response = await uploadImage(imageFile, {
+				videoName: 'Test Video',
+				timestamp: '2024-08-22T10:00:00Z',
+				username: 'ecom_user',
+				profile_name: 'deeku'
+			});
+			uploadStatus = 'Upload successful!';
+		} catch (error) {
+			console.error(error);
+			uploadStatus = 'Upload failed!';
+		}
+	}
 
-	$:console.log(uploadStatus)
+	$: console.log(uploadStatus);
 
 	// Set up the canvas context on component mount
 	onMount(() => {
@@ -169,7 +174,7 @@
 			on:ended={handleEnded}
 			on:timeupdate={handleTimeUpdate}
 		>
-			<source src="{videoUrl}" type="video/mp4" />
+			<source src={videoUrl} type="video/mp4" />
 			<track kind="captions" src="captions.vtt" srclang="en" label="English" />
 			Your browser does not support the video tag.
 		</video>
