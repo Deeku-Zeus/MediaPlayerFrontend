@@ -1,13 +1,16 @@
 <script lang="ts">
 	import path from 'path';
+	import {uploadImage} from '../lib/api'
 	import { onMount } from 'svelte';
-	let videoUrl = 'https://www.w3schools.com/html/mov_bbb.mp4';
+	//let videoUrl = 'https://www.w3schools.com/html/mov_bbb.mp4';
+	let videoUrl = '../../static/sampleVideos/fashion.mp4';
 	let videoTitle = 'Sample Video Title';
 	let videoDescription = 'This is a sample description for the video player.';
 
 	let videoElement: any;
 	let isPaused = true;
 	let isEyeOpen = true; // State for the eye visibility
+	let uploadStatus = ''
 
 	// Rectangle coordinates
 	let rectangles = [
@@ -50,7 +53,7 @@
 	let canvasElement: any;
 	let context: any;
 	let screenshotUrl = '';
-	let imageFile;
+	let imageFile: File;
 
 	function captureScreenshot() {
 		//debugger;
@@ -127,6 +130,25 @@
 		// Implement eye visibility toggle functionality
 	}
 
+	async function handleUpload() {
+        // if (!selectedFile) {
+        //     uploadStatus = 'Please select a file first.';
+        //     return;
+        // }
+
+		console.log(imageFile)
+        try {
+            uploadStatus = 'Uploading...';
+            const response = await uploadImage(imageFile, { videoName:"Test Video", timestamp:'2024-08-22T10:00:00Z', username:'ecom_user', profile_name:'deeku' });
+            uploadStatus = 'Upload successful!';
+        } catch (error) {
+            console.error(error);
+            uploadStatus = 'Upload failed!';
+        }
+    }
+
+	$:console.log(uploadStatus)
+
 	// Set up the canvas context on component mount
 	onMount(() => {
 		if (canvasElement) {
@@ -136,7 +158,7 @@
 </script>
 
 <div class="flex-1">
-	<div class="aspect-w-16 aspect-h-9 bg-black">
+	<div class="aspect-w-16 aspect-h-9 bg-black container">
 		<video
 			id="video"
 			controls
@@ -147,7 +169,7 @@
 			on:ended={handleEnded}
 			on:timeupdate={handleTimeUpdate}
 		>
-			<source src="/samplevideo" type="video/mp4" />
+			<source src="{videoUrl}" type="video/mp4" />
 			<track kind="captions" src="captions.vtt" srclang="en" label="English" />
 			Your browser does not support the video tag.
 		</video>
@@ -155,6 +177,7 @@
 	<div>
 		<div>Canvas</div>
 		<canvas bind:this={canvasElement}></canvas>
+		<button on:click={handleUpload}>Upload</button>
 
 		<div>image tag</div>
 		<!-- <code class="bg-gray">{screenshotUrl}</code> -->
