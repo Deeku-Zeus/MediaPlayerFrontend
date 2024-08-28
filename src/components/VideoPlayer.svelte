@@ -3,9 +3,10 @@
 	import { uploadImage } from '../lib/api';
 	import { onMount } from 'svelte';
 	//let videoUrl = 'https://www.w3schools.com/html/mov_bbb.mp4';
-	let videoUrl = '../../static/sampleVideos/fashion.mp4';
-	let videoTitle = 'Sample Video Title';
-	let videoDescription = 'This is a sample description for the video player.';
+	const videoUrl = '../../static/sampleVideos/';
+	export let videoTitle = 'Sample Video Title';
+	export let videoFileName = 'fashion.mp4';
+	export let videoDescription = 'This is a sample description for the video player.';
 
 	let videoElement: any;
 	let isPaused = true;
@@ -174,7 +175,7 @@
 			on:ended={handleEnded}
 			on:timeupdate={handleTimeUpdate}
 		>
-			<source src={videoUrl} type="video/mp4" />
+			<source src={videoUrl + videoFileName} type="video/mp4" />
 			<track kind="captions" src="captions.vtt" srclang="en" label="English" />
 			Your browser does not support the video tag.
 		</video>

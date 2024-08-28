@@ -1,7 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { base64ToFile } from '../lib/index';
+	import { base64ToFile } from '@lib/index';
+	import { createEventDispatcher } from 'svelte';
+	const dispatch = createEventDispatcher();
 
+	const videoUrl = '../../static/sampleVideos/';
 	let videoElement: HTMLVideoElement | null = null;
 	let isPlaying = false;
 	let isMuted = false;
@@ -11,8 +14,9 @@
 	let duration = 0;
 	let isSearchOpen = false;
 	let canvasElement: HTMLCanvasElement | null = null;
-	let videoUrl = '../../static/sampleVideos/fashion.mp4';
-	let poster = '../../static/1280x720.png';
+	export let videoFileName = 'fashion.mp4';
+	export let poster = '../../static/1280x720.png';
+	export let videoDescription = 'This is a sample description for the video player.';
 
 	// Crop variables
 	let isCropping = false;
@@ -72,21 +76,20 @@
 	function seekVideo(event: MouseEvent) {
 		if (videoElement) {
 			const rect = (event.target as HTMLElement).getBoundingClientRect();
-			const offsetX = Math.max(0, event.clientX - rect.left);
-			const width = rect.width;
+			const offsetX = event.clientX - rect.left; // Click position within the progress bar
+			const width = rect.width; // Width of the progress bar
 
-			// Calculate newTime based on the click position
-			const newTime = Math.max(0, Math.min(duration, (offsetX / width) * duration));
+			// Calculate the new time based on the click position
+			const newTime = (offsetX / width) * duration;
 
-			// Update video currentTime
-			videoElement.currentTime = newTime;
+			// Set the video currentTime
+			videoElement.currentTime = Math.max(0, Math.min(duration, newTime));
 
-			// Ensure the update is applied
-			setTimeout(() => {
-				if (videoElement) {
-					videoElement.currentTime = newTime;
-				}
-			}, 0);
+			console.log(
+				JSON.stringify(
+					`{offsetX: ${offsetX}, width: ${width}, videoElement.currentTime: ${videoElement.currentTime}, newTime: ${newTime}}`
+				)
+			);
 		}
 	}
 
@@ -133,7 +136,8 @@
 	function handleCropMouseUp() {
 		if (isCropping && isDragging) {
 			isDragging = false;
-			captureCroppedImage(); // Capture the cropped image
+			//captureCroppedImage(); // Capture the cropped image
+			prepareDatatoSearchCrop();
 			isCropping = false; // Exit crop mode
 		}
 	}
@@ -191,6 +195,19 @@
 		}
 	}
 
+	function prepareDatatoSearchCrop() {
+		captureCroppedImage(); // Capture the cropped image
+		handleCroppedImage(); // make image to File
+		let data = {
+			videoDimentions: [videoElement?.videoWidth, videoElement?.videoHeight],
+			box: [cropStartX, cropStartY, cropEndX, cropEndY],
+			image: croppedImageFile,
+			videoName: videoFileName.split('.')[0],
+			timestamp: currentTime
+		};
+		dispatch('crop', data);
+	}
+
 	onMount(() => {
 		if (videoElement) {
 			duration = videoElement.duration;
@@ -213,7 +230,7 @@
 		{poster}
 		controls={false}
 	>
-		<source src={videoUrl} type="video/mp4" />
+		<source src={videoUrl + videoFileName} type="video/mp4" />
 		Your browser does not support the video tag.
 	</video>
 
@@ -293,9 +310,9 @@
 		<button
 			on:click={() => {
 				isSearchOpen = !isSearchOpen;
-				const image = getCroppedImage();
-				let file = base64ToFile(image, 'crop.png');
-				console.log(file);
+				// const image = getCroppedImage();
+				// let file = base64ToFile(image, 'crop.png');
+				// console.log(file);
 			}}
 			class="text-2xl search-btn"
 		>
@@ -309,7 +326,7 @@
 			class="absolute top-0 right-0 w-64 h-full bg-gray-800 text-white p-4 overflow-y-auto z-10 search-panel"
 		>
 			<div class="sticky top-0 bg-gray-900 p-2 flex justify-between items-center">
-				<h3 class="text-lg font-semibold">Search Panel</h3>
+				<h3 class="text-lg font-semibold">Item List</h3>
 				<button on:click={() => (isSearchOpen = false)} class="text-xl">
 					<i class="fas fa-times"></i>
 					<!-- Font Awesome Close Icon -->
@@ -328,6 +345,7 @@
 	<!-- Hidden Canvas for Capturing Cropped Image -->
 	<canvas bind:this={canvasElement} class="hidden"></canvas>
 </div>
+<div class="mt-10 text-lg font-semibold">{videoDescription}</div>
 
 <!-- Button to trigger the conversion and display -->
 <button on:click={handleCroppedImage}>show Cropped Image</button>
@@ -344,10 +362,10 @@
 		height: 100vh;
 	}
 
-	video.fullscreen {
+	/* video.fullscreen {
 		width: 100%;
 		height: auto;
-	}
+	} */
 
 	.fullscreen .absolute {
 		bottom: 5%;
@@ -360,5 +378,20 @@
 	}
 	.cropping-overlay.hidden {
 		display: none;
+	}
+
+	.progress-bar-container {
+		position: relative;
+		width: 100%;
+		height: 2px;
+		background-color: gray;
+	}
+
+	.progress-bar-filled {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		background-color: red;
 	}
 </style>

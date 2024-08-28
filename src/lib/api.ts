@@ -3,7 +3,7 @@ const API_URL = 'http://api.awesomemediaplayer.local';
 
 // image upload from ui
 export async function uploadImage(imageFile: File, queryParams: unknown): Promise<Response> {
-	const { videoName, timestamp, username, profile_name } = queryParams;
+	const { videoName, timestamp, username, profile_name, image_name } = queryParams;
 	//const imageFileBase64 = await fileToBase64(imageFile);
 	const formData = new FormData();
 	// let payload = {
@@ -15,7 +15,12 @@ export async function uploadImage(imageFile: File, queryParams: unknown): Promis
 	// };
 	//console.log(imageFile);
 
-	formData.append('image', imageFile, 'test123.png');
+	let filename = 'test.png';
+	if (image_name) {
+		filename = image_name;
+	}
+
+	formData.append('image', imageFile, filename);
 	//formData.append('file', imageFile);
 	if (videoName) {
 		formData.append('videoName', videoName);
