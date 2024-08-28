@@ -17,7 +17,7 @@
 		const { videoDimentions, box, image, videoName, timestamp } = event.detail;
 		console.log('sendImageBackend');
 		console.log(image);
-		let imageName = videoName.split(' ').join('-') + '-' + timestamp + '-' + username + '.png';
+		let imageName = videoName.split(' ').join('-') + '_' + timestamp + '_' + username + '.png';
 
 		try {
 			uploadStatus = 'Uploading...';
