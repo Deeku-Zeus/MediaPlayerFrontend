@@ -1,5 +1,6 @@
 // src/lib/api.ts
 const API_URL = 'http://api.awesomemediaplayer.local';
+const ECOM_API_URL = 'http://api.ecom.local';
 
 // image upload from ui
 export async function uploadImage(imageFile: File, queryParams: unknown): Promise<Response> {
@@ -44,6 +45,32 @@ export async function uploadImage(imageFile: File, queryParams: unknown): Promis
 	if (!response.ok) {
 		throw new Error('Failed to upload image');
 	}
+	const responseData = await response.json();
+	return responseData;
+}
 
-	return response;
+// get analysed data of image
+export async function getAnalysedImageData(
+	request_token: string,
+	uid: string[] = []
+): Promise<Response> {
+	const formData = new FormData();
+	if (request_token) {
+		formData.append('request_token', request_token);
+	}
+
+	if (uid.length > 0) {
+		formData.append('uid', uid.join(','));
+	}
+
+	const response = await fetch(`${API_URL}/api/v1/get/getDetectionResponse`, {
+		method: 'POST',
+		body: formData
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to check if image is analysed');
+	}
+	const responseData = await response.json();
+	return responseData;
 }

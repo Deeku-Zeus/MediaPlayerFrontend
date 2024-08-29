@@ -17,54 +17,7 @@
 	export let videoFileName = 'fashion2.mp4';
 	export let poster = '../../static/1280x720.png';
 	export let videoDescription = 'This is a sample description for the video player.';
-
-	let sampleResponse = [
-		{
-			obj: {
-				confidence: 0.95,
-				coordinates: [127, 773, 163, 809],
-				uid: 'b0764dcfb39c78f7f8b28568ca960a1caa69d6a53bc9cf41be890c5bdd019058',
-				color: 'grey',
-				tags: ['shoe']
-			}
-		},
-		{
-			obj: {
-				confidence: 0.91,
-				coordinates: [127, 771, 165, 810],
-				uid: '3d262efd1f9e83d30c2ee52d678eae5a2e7fe94b299519d9bdadb29f6f48c8b2',
-				color: 'grey',
-				tags: ['shoe']
-			}
-		},
-		{
-			obj: {
-				confidence: 0.63,
-				coordinates: [162, 90, 237, 364],
-				uid: '240d6b3717c10062bf80c457ba7371da663d498095fd1efe3ca8a512c2bcbdf4',
-				color: 'grey',
-				tags: ['shirt', 'blouse']
-			}
-		},
-		{
-			obj: {
-				confidence: 0.56,
-				coordinates: [155, 23, 242, 57],
-				uid: '4b92a6dfcfc2f8dd2e015f483bf9e05ad8f2ec14afdf3bea4e4d0cd3732f6e29',
-				color: 'grey',
-				tags: ['glasses']
-			}
-		},
-		{
-			obj: {
-				confidence: 1.0,
-				coordinates: [199, 699, 239, 793],
-				uid: '290d2def5b17e240f881d2a554e0f27c6a6bc8a691f9dbf35d6b9daf31acce9c',
-				color: 'grey',
-				tags: ['shoe']
-			}
-		}
-	];
+	export let analysedImageResponse: any[] = [];
 
 	// Crop variables
 	let isCropping = false;
@@ -273,6 +226,13 @@
 		dispatch('crop', data);
 	}
 
+	$: if (analysedImageResponse.length > 0) {
+		toggleSearchPanel();
+	}
+
+	function toggleSearchPanel() {
+		isSearchOpen = !isSearchOpen;
+	}
 	onMount(() => {
 		if (videoElement) {
 			duration = videoElement.duration;
@@ -350,7 +310,7 @@
 			<div class="relative w-full h-2 bg-gray-600 rounded">
 				<div
 					class="absolute top-0 left-0 h-full bg-red-500 rounded"
-					style="width: {Math.min((currentTime / duration) * 100, 100)}%"
+					style="width: {Math.min((currentTime / duration) * 100 || 0, 100)}%"
 				></div>
 			</div>
 		</div>
@@ -381,10 +341,7 @@
 		<!-- Search Button -->
 		<button
 			on:click={() => {
-				isSearchOpen = !isSearchOpen;
-				// const image = getCroppedImage();
-				// let file = base64ToFile(image, 'crop.png');
-				// console.log(file);
+				toggleSearchPanel();
 			}}
 			class="text-2xl search-btn"
 		>
@@ -415,10 +372,11 @@
 				</button>
 			</div>
 			<div class="space-y-4">
-				{#each sampleResponse as { obj }, i}
+				{#each analysedImageResponse as { coordinates, confidence, tags, uid, color }}
 					<div class="p-2 bg-gray-700 rounded h-40 break-words overflow-x-hidden overflow-y-scroll">
 						<!-- <code>{JSON.stringify(obj)}</code> -->
-						<div>{obj['tags']}</div>
+						<div>{tags}</div>
+						<div>color: {color}</div>
 						<p>Results:</p>
 						<br />
 						<a class="text-blue-500" href="/ecom" target="_blank">Product Site</a>
