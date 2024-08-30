@@ -1,6 +1,12 @@
 <script lang="ts">
 	import VideoPlayer from '@components/VideoPlayer2.svelte';
-	import { uploadImage, getAnalysedImageData } from '@lib/api';
+	import {
+		uploadImage,
+		fetchAnalysedImageData,
+		fetchEcomProducts,
+		fetchResponseHistory,
+		updateAnalysedImageData
+	} from '@lib/api';
 
 	let relatedVideos = [
 		{ title: 'Related Video 1', url: '#', thumbnail: 'https://via.placeholder.com/120x90' },
@@ -49,12 +55,12 @@
 		uploadStatus = '';
 		let gotAnalysedImageData = false;
 		let attempts = 0;
-		const maxAttempts = 5; // Maximum number of attempts
-		const delayMs = 1000; // Delay in milliseconds
+		const maxAttempts = 10; // Maximum number of attempts
+		const delayMs = 500; // Delay in milliseconds
 
 		try {
 			while (!gotAnalysedImageData && attempts < maxAttempts) {
-				analysedImageResponse = await getAnalysedImageData(request_token);
+				analysedImageResponse = await fetchAnalysedImageData(request_token);
 				gotAnalysedImageData = analysedImageResponse.result;
 				analysedImageResponseData = analysedImageResponse.data?.analyzed_response ?? [];
 				if (!gotAnalysedImageData) {
@@ -72,6 +78,51 @@
 		} catch (error) {
 			console.error(error);
 			uploadStatus = 'image analysis failed!';
+		}
+	}
+
+	async function fetchProductList(event: any) {
+		const { color, tags } = event.detail;
+		//fetchEcomProducts();
+		console.log('fetchProductList');
+		// let attempts = 0;
+		// const maxAttempts = 10; // Maximum number of attempts
+		// const delayMs = 500; // Delay in milliseconds
+		let response: any = [];
+
+		try {
+			//while (attempts < maxAttempts) {
+			response = await fetchEcomProducts(color, tags);
+			// 	if (!response) {
+			// 		attempts++;
+			// 		await delay(delayMs); // Wait for 500 ms before the next attempt
+			// 	}
+			// }
+			if (response) {
+				console.log('fetchEcomProductsResponse:', response);
+			}
+			// else {
+			// 	console.log('fetchEcomProducts API failed after maximum attempts');
+			// }
+		} catch (error) {
+			console.error(error);
+			console.log('fetchEcomProducts failed!');
+		}
+	}
+
+	async function fetchImageHistory(event: any) {
+		const { videoName, page } = event.detail;
+		console.log('fetchImageHistory');
+		let response: any = [];
+
+		try {
+			response = await fetchResponseHistory(videoName, page);
+			if (response) {
+				console.log('fetchResponseHistory:', response);
+			}
+		} catch (error) {
+			console.error(error);
+			console.log('fetchResponseHistory failed!');
 		}
 	}
 
@@ -93,6 +144,8 @@
 	on:crop={async (e) => {
 		await sendImageBackend(e);
 	}}
+	on:search={fetchProductList}
+	on:history={fetchImageHistory}
 	bind:analysedImageResponse={analysedImageResponseData}
 />
 <div class="flex flex-row lg:flex-row p-4 space-y-4 lg:space-y-0 lg:space-x-4">

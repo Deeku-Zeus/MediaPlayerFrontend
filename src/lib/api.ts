@@ -50,7 +50,7 @@ export async function uploadImage(imageFile: File, queryParams: unknown): Promis
 }
 
 // get analysed data of image
-export async function getAnalysedImageData(
+export async function fetchAnalysedImageData(
 	request_token: string,
 	uid: string[] = []
 ): Promise<Response> {
@@ -70,6 +70,86 @@ export async function getAnalysedImageData(
 
 	if (!response.ok) {
 		throw new Error('Failed to check if image is analysed');
+	}
+	const responseData = await response.json();
+	return responseData;
+}
+
+// get analysed data of image
+export async function fetchEcomProducts(
+	color: string | null = null,
+	category: string[] | [] = []
+): Promise<Response> {
+	const formData = new FormData();
+	if (color) {
+		formData.append('color', color);
+	}
+
+	if (category.length > 0) {
+		formData.append('category', category.join(','));
+	}
+
+	const response = await fetch(`${API_URL}/api/v1/get/getEcomProducts`, {
+		method: 'POST',
+		body: formData
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to check for products on ecom');
+	}
+	const responseData = await response.json();
+	return responseData;
+}
+
+// update analyed info of image.
+export async function updateAnalysedImageData(
+	uid: string,
+	newData: { color: string; category: string[] }
+): Promise<Response> {
+	const formData = new FormData();
+	const { color, category } = newData;
+	if (uid) {
+		formData.append('uid', uid);
+	}
+	if (color) {
+		formData.append('color', color);
+	}
+	if (category.length > 0) {
+		formData.append('category', category.join(','));
+	}
+
+	const response = await fetch(`${API_URL}/api/v1/put/updateAnalyzeData`, {
+		method: 'POST',
+		body: formData
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to update image analyses data');
+	}
+	const responseData = await response.json();
+	return responseData;
+}
+
+// get old analysed image page wise
+export async function fetchResponseHistory(
+	videoName: string,
+	page: string | undefined = '1'
+): Promise<Response> {
+	const formData = new FormData();
+	if (videoName) {
+		formData.append('videoName', videoName);
+	}
+	if (page) {
+		formData.append('page', page);
+	}
+
+	const response = await fetch(`${API_URL}/api/v1/get/getResponseHistory`, {
+		method: 'POST',
+		body: formData
+	});
+
+	if (!response.ok) {
+		throw new Error('Failed to history of image analyses data');
 	}
 	const responseData = await response.json();
 	return responseData;

@@ -7,13 +7,14 @@
 	const videoUrl = '../../static/sampleVideos/';
 	let videoElement: HTMLVideoElement | null = null;
 	let isPlaying = false;
-	let isMuted = false;
+	let isMuted = true;
 	let volume = 1;
 	let isFullscreen = false;
 	let currentTime = 0;
 	let duration = 0;
 	let isSearchOpen = false;
 	let canvasElement: HTMLCanvasElement | null = null;
+	let itemPage = 0;
 	export let videoFileName = 'fashion2.mp4';
 	export let poster = '../../static/1280x720.png';
 	export let videoDescription = 'This is a sample description for the video player.';
@@ -226,6 +227,22 @@
 		dispatch('crop', data);
 	}
 
+	function handleProductSearch(color: string, tags: string[] | []) {
+		let data = {
+			color,
+			tags
+		};
+		dispatch('search', data);
+	}
+
+	function handleFetchHistory(videoName: string, page: number) {
+		let data = {
+			videoName,
+			page
+		};
+		dispatch('history', data);
+	}
+
 	$: if (analysedImageResponse.length > 0) {
 		toggleSearchPanel();
 	}
@@ -239,6 +256,8 @@
 			videoElement.volume = volume;
 			document.addEventListener('keydown', handleKeydown);
 			document.addEventListener('click', handleClickOutside);
+			videoElement.muted = true;
+			isMuted = true;
 		}
 	});
 </script>
@@ -362,7 +381,7 @@
 	<!-- Search Panel (side navigation) -->
 	{#if isSearchOpen}
 		<div
-			class="absolute top-0 right-0 w-64 h-full bg-gray-800 text-white p-4 overflow-y-auto z-10 search-panel opacity-70 hover:opacity-100"
+			class="absolute top-0 right-0 w-64 h-full bg-black text-white p-4 overflow-y-auto z-10 search-panel opacity-70 hover:opacity-100"
 		>
 			<div class="sticky top-0 bg-gray-900 p-2 flex justify-between items-center opacity-100">
 				<h3 class="text-lg font-semibold">Item List</h3>
@@ -372,6 +391,16 @@
 				</button>
 			</div>
 			<div class="space-y-4">
+				<div class="p-2 bg-gray-700 rounded h-10 text-center">
+					<button
+						on:click={() => {
+							handleFetchHistory(videoFileName.split('.')[0], ++itemPage);
+						}}>Fetch History</button
+					>
+				</div>
+				<div class="p-2 bg-gray-700 rounded h-10 text-center">
+					<i class="fa-solid fa-spinner animate-spin"></i>
+				</div>
 				{#each analysedImageResponse as { coordinates, confidence, tags, uid, color }}
 					<div class="p-2 bg-gray-700 rounded h-40 break-words overflow-x-hidden overflow-y-scroll">
 						<!-- <code>{JSON.stringify(obj)}</code> -->
@@ -379,7 +408,11 @@
 						<div>color: {color}</div>
 						<p>Results:</p>
 						<br />
-						<a class="text-blue-500" href="/ecom" target="_blank">Product Site</a>
+						<button
+							on:click={() => {
+								handleProductSearch(color, tags);
+							}}>Search Product</button
+						>
 					</div>
 				{/each}
 			</div>
