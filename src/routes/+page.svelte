@@ -6,6 +6,8 @@
 
 <link rel="stylesheet" href="../../static/fonts/css/all.min.css" />
 <main class="p-8">
-	<h1 class="text-3xl font-bold mb-6 text-yellow-500">Ecom Video Player</h1>
+	<h1 class="text-3xl font-bold mb-6 text-green-800">
+		<i class="fas fa-clapperboard text-green-800"></i> Ecom Video Player
+	  </h1>
 	<SteamingSite />
 </main>

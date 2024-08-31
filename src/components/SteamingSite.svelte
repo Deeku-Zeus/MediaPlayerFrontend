@@ -10,11 +10,11 @@
 	import EcomSite from '@components/EcomSite.svelte';
 	import { selectedProduct } from '@src/stores/index';
 
-	let relatedVideos = [
-		{ title: 'Related Video 1', url: '#', thumbnail: 'https://via.placeholder.com/120x90' },
-		{ title: 'Related Video 2', url: '#', thumbnail: 'https://via.placeholder.com/120x90' },
-		{ title: 'Related Video 3', url: '#', thumbnail: 'https://via.placeholder.com/120x90' }
-	];
+	// let relatedVideos = [
+	// 	{ title: 'Related Video 1', url: '#', thumbnail: 'https://via.placeholder.com/120x90' },
+	// 	{ title: 'Related Video 2', url: '#', thumbnail: 'https://via.placeholder.com/120x90' },
+	// 	{ title: 'Related Video 3', url: '#', thumbnail: 'https://via.placeholder.com/120x90' }
+	// ];
 
 	const profile_name: string = 'Deeku';
 	const username: string = 'DeekuZeus';

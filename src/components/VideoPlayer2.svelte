@@ -21,7 +21,8 @@
 	export let productIndex;
 	export let videoFileName = 'fashion3.mp4';
 	export let poster = '../../static/1280x720.png';
-	export let videoDescription = 'This is a sample description for the video player.';
+	export let videoDescription =
+		'Zendaya’s Ultimate Fashion Evolution: From Red Carpet Glam to Street Style Chic';
 	export let analysedImageResponse: any[] = [];
 	export let productListResponseData: any[] = [];
 
@@ -146,6 +147,7 @@
 			cropStartY = event.clientY - rect.top;
 			cropEndX = cropStartX;
 			cropEndY = cropStartY;
+			isPlaying = false;
 		}
 	}
 
@@ -289,9 +291,21 @@
 
 	let currentIndex = 0;
 	let items = [
-		{ id: 1, src: 'http://api.ecom.local/storage/products/product25.jpg', alt: 'Image 1' },
-		{ id: 2, src: 'http://api.ecom.local/storage/products/product25.jpg', alt: 'Image 2' },
-		{ id: 3, src: 'http://api.ecom.local/storage/products/product25.jpg', alt: 'Image 3' }
+		{
+			id: 1,
+			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion2_524.904481_DeekuZeus.png',
+			alt: 'Image 1'
+		},
+		{
+			id: 2,
+			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion3_19.953464_DeekuZeus.png',
+			alt: 'Image 2'
+		},
+		{
+			id: 3,
+			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion2_173.784037_DeekuZeus.png',
+			alt: 'Image 3'
+		}
 	];
 
 	function next() {
@@ -541,10 +555,18 @@
 	<!-- Hidden Canvas for Capturing Cropped Image -->
 	<canvas bind:this={canvasElement} class="hidden"></canvas>
 </div>
-<div class="mt-10 text-lg font-semibold">{videoDescription}</div>
+<div class="mt-10 mb-2 text-2xl font-semibold">{videoDescription}</div>
+<div class="mb-72 text-sm">
+	Step into the world of Zendaya’s fashion journey as we explore her most iconic looks! In this
+	video, we take a deep dive into Zendaya’s style evolution, showcasing her stunning red carpet
+	gowns, effortlessly chic street style, and everything in between. Discover how Zendaya mixes high
+	fashion with casual elegance, and get inspired by her bold fashion choices. From dazzling designer
+	pieces to off-duty outfits, see how Zendaya continues to set trends and redefine modern fashion.
+	Don’t forget to like, comment, and subscribe for more style inspirations!
+</div>
 
 <!-- Button to trigger the conversion and display -->
-<button on:click={handleCroppedImage}>show Cropped Image</button>
+<!-- <button on:click={handleCroppedImage}>Update</button> -->
 
 <!-- Display the cropped image -->
 <!-- {#if croppedImageUrl} -->
@@ -553,13 +575,14 @@
 <!-- {/if} -->
 
 <!-- Display images -->
-<div class="relative overflow-hidden w-1/3 mx-auto">
+<div class="text-2xl">Sample Processed Images</div>
+<div class="relative overflow-hidden w-1/3 mx-auto mb-64">
 	<div
 		class="flex transition-transform duration-300"
 		style={`transform: translateX(-${currentIndex * 100}%)`}
 	>
 		{#each items as item}
-			<div class="flex-shrink-0 w-full h-[350px] max-w-[640px] mx-auto">
+			<div class="flex-shrink-0 w-full h-[600px] max-w-[800px] mx-auto">
 				<img src={item.src} alt={item.alt} class="w-full h-full object-contain rounded-lg" />
 			</div>
 		{/each}
@@ -579,6 +602,8 @@
 		&#10095;
 	</button>
 </div>
+
+<div class="text-2xl">Usecase of Analytics</div>
 
 <style lang="postcss">
 	.fullscreen {
