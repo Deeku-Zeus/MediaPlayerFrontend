@@ -156,6 +156,34 @@
 		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
+	// carosel
+	let currentIndex = 0;
+	let items = [
+		{
+			id: 1,
+			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion2_524.904481_DeekuZeus.png',
+			alt: 'Image 1'
+		},
+		{
+			id: 2,
+			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion3_19.953464_DeekuZeus.png',
+			alt: 'Image 2'
+		},
+		{
+			id: 3,
+			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion2_173.784037_DeekuZeus.png',
+			alt: 'Image 3'
+		}
+	];
+
+	function next() {
+		currentIndex = (currentIndex + 1) % items.length;
+	}
+
+	function prev() {
+		currentIndex = (currentIndex - 1 + items.length) % items.length;
+	}
+
 	// Reactive statement to trigger checkImageProcessed when imageUploadResponse is set
 	$: if (imageUploadResponse) {
 		checkImageProcessed();
@@ -180,5 +208,37 @@
 	bind:productIndex
 />
 {#if showEcomDetail}
+	<div class="text-2xl">E-commerce Product view</div>
 	<EcomSite product={$selectedProduct[productIndex]} />
 {/if}
+
+<!-- Display images -->
+<div class="text-2xl">Sample Processed Images</div>
+<div class="relative overflow-hidden w-1/3 mx-auto mb-40">
+	<div
+		class="flex transition-transform duration-300"
+		style={`transform: translateX(-${currentIndex * 100}%)`}
+	>
+		{#each items as item}
+			<div class="flex-shrink-0 w-full h-[600px] max-w-[800px] mx-auto">
+				<img src={item.src} alt={item.alt} class="w-full h-full object-contain rounded-lg" />
+			</div>
+		{/each}
+	</div>
+
+	<!-- Navigation Controls -->
+	<button
+		on:click={prev}
+		class="absolute top-1/2 left-4 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-600 focus:outline-none"
+	>
+		&#10094;
+	</button>
+	<button
+		on:click={next}
+		class="absolute top-1/2 right-4 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-600 focus:outline-none"
+	>
+		&#10095;
+	</button>
+</div>
+
+<div class="text-2xl">Usecase of Analytics</div>

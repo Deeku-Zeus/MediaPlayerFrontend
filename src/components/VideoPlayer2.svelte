@@ -289,33 +289,6 @@
 		dispatch('update', data);
 	}
 
-	let currentIndex = 0;
-	let items = [
-		{
-			id: 1,
-			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion2_524.904481_DeekuZeus.png',
-			alt: 'Image 1'
-		},
-		{
-			id: 2,
-			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion3_19.953464_DeekuZeus.png',
-			alt: 'Image 2'
-		},
-		{
-			id: 3,
-			src: 'http://api.awesomemediaplayer.local/storage/outputs/fashion2_173.784037_DeekuZeus.png',
-			alt: 'Image 3'
-		}
-	];
-
-	function next() {
-		currentIndex = (currentIndex + 1) % items.length;
-	}
-
-	function prev() {
-		currentIndex = (currentIndex - 1 + items.length) % items.length;
-	}
-
 	onMount(() => {
 		if (videoElement) {
 			duration = videoElement.duration;
@@ -556,7 +529,7 @@
 	<canvas bind:this={canvasElement} class="hidden"></canvas>
 </div>
 <div class="mt-10 mb-2 text-2xl font-semibold">{videoDescription}</div>
-<div class="mb-72 text-sm">
+<div class="mb-20 text-sm">
 	Step into the world of Zendaya’s fashion journey as we explore her most iconic looks! In this
 	video, we take a deep dive into Zendaya’s style evolution, showcasing her stunning red carpet
 	gowns, effortlessly chic street style, and everything in between. Discover how Zendaya mixes high
@@ -573,37 +546,6 @@
 <!-- svelte-ignore a11y-img-redundant-alt -->
 <!-- <img class="h-full w-full" src={croppedImageUrl} alt="Cropped Image" /> -->
 <!-- {/if} -->
-
-<!-- Display images -->
-<div class="text-2xl">Sample Processed Images</div>
-<div class="relative overflow-hidden w-1/3 mx-auto mb-64">
-	<div
-		class="flex transition-transform duration-300"
-		style={`transform: translateX(-${currentIndex * 100}%)`}
-	>
-		{#each items as item}
-			<div class="flex-shrink-0 w-full h-[600px] max-w-[800px] mx-auto">
-				<img src={item.src} alt={item.alt} class="w-full h-full object-contain rounded-lg" />
-			</div>
-		{/each}
-	</div>
-
-	<!-- Navigation Controls -->
-	<button
-		on:click={prev}
-		class="absolute top-1/2 left-4 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-600 focus:outline-none"
-	>
-		&#10094;
-	</button>
-	<button
-		on:click={next}
-		class="absolute top-1/2 right-4 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-600 focus:outline-none"
-	>
-		&#10095;
-	</button>
-</div>
-
-<div class="text-2xl">Usecase of Analytics</div>
 
 <style lang="postcss">
 	.fullscreen {
