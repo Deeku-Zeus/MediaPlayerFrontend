@@ -102,10 +102,7 @@ export async function fetchEcomProducts(
 }
 
 // update analyed info of image.
-export async function updateAnalysedImageData(
-	uid: string,
-	newData: { color: string; category: string[] }
-): Promise<Response> {
+export async function updateAnalysedImageData(uid: string, newData: unknown): Promise<Response> {
 	const formData = new FormData();
 	const { color, category } = newData;
 	if (uid) {

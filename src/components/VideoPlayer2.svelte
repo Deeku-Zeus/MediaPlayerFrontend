@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { base64ToFile } from '@lib/index';
 	import { createEventDispatcher } from 'svelte';
+	import { selectedProduct } from '@src/stores/index';
+	//import { selectedProduct } from '@src/stores/index';
 	const dispatch = createEventDispatcher();
 
 	const videoUrl = '../../static/sampleVideos/';
@@ -15,10 +17,13 @@
 	let isSearchOpen = false;
 	let canvasElement: HTMLCanvasElement | null = null;
 	let itemPage = 0;
-	export let videoFileName = 'fashion2.mp4';
+	export let showEcomDetail = true;
+	export let productIndex;
+	export let videoFileName = 'fashion3.mp4';
 	export let poster = '../../static/1280x720.png';
 	export let videoDescription = 'This is a sample description for the video player.';
 	export let analysedImageResponse: any[] = [];
+	export let productListResponseData: any[] = [];
 
 	// Crop variables
 	let isCropping = false;
@@ -112,9 +117,9 @@
 		isDraggingVideoProgressBar = false;
 	}
 
-	// function toggleSearchPanel() {
-	// 	isSearchOpen = !isSearchOpen;
-	// }
+	function toggleSearchPanel() {
+		isSearchOpen = !isSearchOpen;
+	}
 
 	function handleCroppedImage() {
 		const croppedImageBase64 = getCroppedImage(); // Assuming this is the function returning the base64 data URL
@@ -227,8 +232,9 @@
 		dispatch('crop', data);
 	}
 
-	function handleProductSearch(color: string, tags: string[] | []) {
+	function handleProductSearch(uid: string, color: string, tags: string[] | []) {
 		let data = {
+			uid,
 			color,
 			tags
 		};
@@ -243,13 +249,59 @@
 		dispatch('history', data);
 	}
 
-	$: if (analysedImageResponse.length > 0) {
-		toggleSearchPanel();
+	function updateItemListWithProductLinks() {
+		const { uid, data } = productListResponseData;
+		console.log(uid, data);
+		let productData = data;
+		analysedImageResponse.forEach((item) => {
+			if (item.uid === uid) {
+				item.links = productData;
+			}
+		});
+		//selectedProduct.set(productData);
 	}
 
-	function toggleSearchPanel() {
-		isSearchOpen = !isSearchOpen;
+	$: if (analysedImageResponse.length > 0) {
+		isSearchOpen = true;
 	}
+
+	$: productListResponseData, updateItemListWithProductLinks();
+
+	// search nav bar variables
+	// let isEditing = false;
+	// let tagInput = '';
+	// let colorInput = '';
+	// let links = ['https://example.com/1', 'https://example.com/2']; // Sample links
+
+	function handleUpdateFields(res: any) {
+		let { uid, color, tags, isEditing } = res;
+		console.log(uid, color, tags, isEditing);
+		if (isEditing) {
+			return;
+		}
+		const data = {
+			uid: uid,
+			color: color,
+			tags: typeof tags == 'string' ? tags.split(',') : tags
+		};
+		dispatch('update', data);
+	}
+
+	let currentIndex = 0;
+	let items = [
+		{ id: 1, src: 'http://api.ecom.local/storage/products/product25.jpg', alt: 'Image 1' },
+		{ id: 2, src: 'http://api.ecom.local/storage/products/product25.jpg', alt: 'Image 2' },
+		{ id: 3, src: 'http://api.ecom.local/storage/products/product25.jpg', alt: 'Image 3' }
+	];
+
+	function next() {
+		currentIndex = (currentIndex + 1) % items.length;
+	}
+
+	function prev() {
+		currentIndex = (currentIndex - 1 + items.length) % items.length;
+	}
+
 	onMount(() => {
 		if (videoElement) {
 			duration = videoElement.duration;
@@ -385,34 +437,101 @@
 		>
 			<div class="sticky top-0 bg-gray-900 p-2 flex justify-between items-center opacity-100">
 				<h3 class="text-lg font-semibold">Item List</h3>
-				<button on:click={() => (isSearchOpen = false)} class="text-xl">
+				<button
+					on:click={() => {
+						isSearchOpen = false;
+					}}
+					class="text-xl"
+				>
 					<i class="fas fa-times"></i>
-					<!-- Font Awesome Close Icon -->
 				</button>
 			</div>
 			<div class="space-y-4">
+				<!-- Fetch History Button -->
 				<div class="p-2 bg-gray-700 rounded h-10 text-center">
-					<button
-						on:click={() => {
-							handleFetchHistory(videoFileName.split('.')[0], ++itemPage);
-						}}>Fetch History</button
+					<button on:click={() => handleFetchHistory(videoFileName.split('.')[0], ++itemPage)}
+						>Fetch History</button
 					>
 				</div>
-				<div class="p-2 bg-gray-700 rounded h-10 text-center">
+				<!-- Loading Spinner -->
+				<div
+					class:hidden={analysedImageResponse.length > 0}
+					class="p-2 bg-gray-700 rounded h-10 text-center"
+				>
 					<i class="fa-solid fa-spinner animate-spin"></i>
 				</div>
-				{#each analysedImageResponse as { coordinates, confidence, tags, uid, color }}
-					<div class="p-2 bg-gray-700 rounded h-40 break-words overflow-x-hidden overflow-y-scroll">
-						<!-- <code>{JSON.stringify(obj)}</code> -->
-						<div>{tags}</div>
-						<div>color: {color}</div>
-						<p>Results:</p>
-						<br />
-						<button
-							on:click={() => {
-								handleProductSearch(color, tags);
-							}}>Search Product</button
-						>
+				<!-- Editable Tag Section -->
+				{#each analysedImageResponse as res}
+					<div class="p-2 bg-gray-700 rounded">
+						<div class="flex justify-between items-center">
+							<div>{typeof res.tags === 'object' ? res.tags.join(',') : res.tags}</div>
+							<div class="px-2">
+								<button
+									on:click={() => {
+										if (res.isEditing === undefined) {
+											res.isEditing = true;
+										} else {
+											res.isEditing = !res.isEditing;
+										}
+										handleUpdateFields(res);
+									}}
+									class="text-xl"
+								>
+									<i class={(res.isEditing ?? false) ? 'fas fa-save' : 'fas fa-edit'}></i>
+								</button>
+
+								<button
+									on:click={() => {
+										handleProductSearch(res.uid, res.color, res.tags);
+									}}
+									class="text-xl ml-2"
+								>
+									<i class="fas fa-search"></i>
+								</button>
+							</div>
+						</div>
+						<!-- Input fields for editing -->
+						{#if res.isEditing ?? false}
+							<div class="space-y-2 mt-2">
+								<input
+									type="text"
+									bind:value={res.tags}
+									placeholder="Edit Tags"
+									class="w-full p-2 bg-gray-600 rounded"
+								/>
+								<input
+									type="text"
+									bind:value={res.color}
+									placeholder="Edit Color"
+									class="w-full p-2 bg-gray-600 rounded"
+								/>
+							</div>
+						{/if}
+						<!-- <div class="text-center">
+							<button
+								on:click={() => {
+									handleProductSearch(res.color, res.tags);
+								}}
+							>
+								<i class="fas fa-search"></i>
+							</button>
+						</div> -->
+						<!-- Display links -->
+						<div class="mt-2 space-y-1">
+							{#if res.links ?? false}
+								{#each res.links as link, i}
+									<button
+										class="block text-blue-400 underline"
+										on:click={() => {
+											showEcomDetail = true;
+											productIndex = i;
+										}}
+									>
+										{link?.productName}
+									</button>
+								{/each}
+							{/if}
+						</div>
 					</div>
 				{/each}
 			</div>
@@ -428,10 +547,38 @@
 <button on:click={handleCroppedImage}>show Cropped Image</button>
 
 <!-- Display the cropped image -->
-{#if croppedImageUrl}
-	<!-- svelte-ignore a11y-img-redundant-alt -->
-	<img class="h-full w-full" src={croppedImageUrl} alt="Cropped Image" />
-{/if}
+<!-- {#if croppedImageUrl} -->
+<!-- svelte-ignore a11y-img-redundant-alt -->
+<!-- <img class="h-full w-full" src={croppedImageUrl} alt="Cropped Image" /> -->
+<!-- {/if} -->
+
+<!-- Display images -->
+<div class="relative overflow-hidden w-1/3 mx-auto">
+	<div
+		class="flex transition-transform duration-300"
+		style={`transform: translateX(-${currentIndex * 100}%)`}
+	>
+		{#each items as item}
+			<div class="flex-shrink-0 w-full h-[350px] max-w-[640px] mx-auto">
+				<img src={item.src} alt={item.alt} class="w-full h-full object-contain rounded-lg" />
+			</div>
+		{/each}
+	</div>
+
+	<!-- Navigation Controls -->
+	<button
+		on:click={prev}
+		class="absolute top-1/2 left-4 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-600 focus:outline-none"
+	>
+		&#10094;
+	</button>
+	<button
+		on:click={next}
+		class="absolute top-1/2 right-4 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full hover:bg-gray-600 focus:outline-none"
+	>
+		&#10095;
+	</button>
+</div>
 
 <style lang="postcss">
 	.fullscreen {
@@ -470,5 +617,16 @@
 		left: 0;
 		height: 100%;
 		background-color: red;
+	}
+
+	.carousel-container {
+		overflow: hidden;
+	}
+	.carousel-items {
+		display: flex;
+		transition: transform 0.3s ease;
+	}
+	.carousel-item {
+		min-width: 100%;
 	}
 </style>

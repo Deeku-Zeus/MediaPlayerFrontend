@@ -17,7 +17,8 @@ const config = {
 			'@components': 'src/components',
 			'@lib': 'src/lib',
 			'@routes': 'src/routes',
-			'@static': path.resolve('/', 'static')
+			'@static': path.resolve('/', 'static'),
+			'@src': 'src'
 		}
 	},
 	server: {

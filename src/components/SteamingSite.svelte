@@ -7,6 +7,8 @@
 		fetchResponseHistory,
 		updateAnalysedImageData
 	} from '@lib/api';
+	import EcomSite from '@components/EcomSite.svelte';
+	import { selectedProduct } from '@src/stores/index';
 
 	let relatedVideos = [
 		{ title: 'Related Video 1', url: '#', thumbnail: 'https://via.placeholder.com/120x90' },
@@ -20,6 +22,9 @@
 	let imageUploadResponse: any = [];
 	let analysedImageResponse: any = [];
 	let analysedImageResponseData: any = [];
+	let productListResponseData: any = [];
+	let showEcomDetail = false;
+	let productIndex: number;
 
 	async function sendImageBackend(event: any) {
 		const { videoDimentions, box, image, videoName, timestamp } = event.detail;
@@ -82,7 +87,7 @@
 	}
 
 	async function fetchProductList(event: any) {
-		const { color, tags } = event.detail;
+		const { uid, color, tags } = event.detail;
 		//fetchEcomProducts();
 		console.log('fetchProductList');
 		// let attempts = 0;
@@ -98,9 +103,12 @@
 			// 		await delay(delayMs); // Wait for 500 ms before the next attempt
 			// 	}
 			// }
+			productListResponseData = { uid, ...response };
 			if (response) {
 				console.log('fetchEcomProductsResponse:', response);
 			}
+
+			selectedProduct.set(response.data);
 			// else {
 			// 	console.log('fetchEcomProducts API failed after maximum attempts');
 			// }
@@ -126,6 +134,23 @@
 		}
 	}
 
+	// function to update result of analyses
+	async function updateMLResponse(event: any) {
+		const { uid, color, tags } = event.detail;
+		console.log('updateMLResponse');
+		let response: any = [];
+
+		try {
+			response = await updateAnalysedImageData(uid, { color: color, category: tags });
+			if (response) {
+				console.log('updateAnalysedImageData:', response);
+			}
+		} catch (error) {
+			console.error(error);
+			console.log('updateAnalysedImageData failed!');
+		}
+	}
+
 	// Function to delay execution for a given amount of time
 	function delay(ms: number) {
 		return new Promise((resolve) => setTimeout(resolve, ms));
@@ -137,6 +162,8 @@
 	}
 
 	$: console.log(uploadStatus);
+
+	$: console.log('$selectedProduct ', $selectedProduct);
 </script>
 
 <!-- Main Video Section -->
@@ -146,21 +173,12 @@
 	}}
 	on:search={fetchProductList}
 	on:history={fetchImageHistory}
-	bind:analysedImageResponse={analysedImageResponseData}
+	on:update={updateMLResponse}
+	analysedImageResponse={analysedImageResponseData}
+	{productListResponseData}
+	bind:showEcomDetail
+	bind:productIndex
 />
-<div class="flex flex-row lg:flex-row p-4 space-y-4 lg:space-y-0 lg:space-x-4">
-	<!-- Related Videos Sidebar -->
-	<div class="w-full lg:w-1/3">
-		<h2 class="text-lg font-semibold mb-4">Related Videos</h2>
-		<ul class="space-y-4">
-			{#each relatedVideos as video}
-				<li class="flex space-x-4">
-					<img src={video.thumbnail} alt={video.title} class="w-24 h-16 object-cover" />
-					<div>
-						<a href={video.url} class="text-sm font-medium hover:underline">{video.title}</a>
-					</div>
-				</li>
-			{/each}
-		</ul>
-	</div>
-</div>
+{#if showEcomDetail}
+	<EcomSite product={$selectedProduct[productIndex]} />
+{/if}
